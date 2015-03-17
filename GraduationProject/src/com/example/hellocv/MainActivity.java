@@ -1,12 +1,9 @@
 package com.example.hellocv;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.List;
 
 import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
@@ -20,7 +17,6 @@ import org.opencv.core.MatOfRect;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.HOGDescriptor;
 
 import android.app.Activity;
@@ -30,13 +26,20 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.SurfaceView;
+import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
-public class MainActivity extends Activity implements CvCameraViewListener2 {
+public class MainActivity extends Activity implements CvCameraViewListener2, OnTouchListener {
 	private static final String TAG = "HelloCV::HelloOpenCvActivity";
+	private ImageView iv;
+    private Mat                    mRgba;
+    private Mat                    mGray;
 	
-	//private CameraBridgeViewBase mOpenCvCameraView;
+	private CameraBridgeViewBase mOpenCvCameraView;
 	static {
 	    if (!OpenCVLoader.initDebug()) {
 	        // Handle initialization error
@@ -49,11 +52,11 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		super.onCreate(savedInstanceState);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		setContentView(R.layout.layout_main);
-		ImageView iv = (ImageView)findViewById(R.id.image);
-		iv.setImageBitmap(peopleDetect("http://habrastorage.org/getpro/habr/post_images/829/8c9/963/8298c9963eed721dabb0548dba577d1b.jpg"));
-//		mOpenCvCameraView = (CameraBridgeViewBase)findViewById(R.id.HelloOpenCvView);
-//		mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-//		mOpenCvCameraView.setCvCameraViewListener(this);
+		iv = (ImageView)findViewById(R.id.modifiedImage);
+		mOpenCvCameraView = (CameraBridgeViewBase)findViewById(R.id.HelloOpenCvView);
+		mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+		mOpenCvCameraView.setCvCameraViewListener(this);
+		mOpenCvCameraView.setOnTouchListener(this);
 	}
 
 	@Override
@@ -81,7 +84,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			switch (status) {
 			case LoaderCallbackInterface.SUCCESS: {
 				Log.i(TAG, "OpenCV loaded successfully");
-//				mOpenCvCameraView.enableView();
+				mOpenCvCameraView.enableView();
 			}
 				break;
 			default: {
@@ -102,14 +105,14 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	@Override
 	public void onPause() {
 		super.onPause();
-//		if(mOpenCvCameraView != null)
-//			mOpenCvCameraView.disableView();
+		if(mOpenCvCameraView != null)
+			mOpenCvCameraView.disableView();
 	}
 	
 	public void onDestory() {
 		super.onDestroy();
-//		if(mOpenCvCameraView != null)
-//			mOpenCvCameraView.disableView();
+		if(mOpenCvCameraView != null)
+			mOpenCvCameraView.disableView();
 	}
 
 	@Override
@@ -127,22 +130,80 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		// TODO Auto-generated method stub
-		return inputFrame.rgba();
+        mRgba = inputFrame.rgba();
+        mGray = inputFrame.gray();
+        MatOfRect locations = new MatOfRect ();
+        MatOfDouble weights = new MatOfDouble ();
+        //As a matter of fact, the analysis of photos. Results register in locations and weights
+        //hog.detectMultiScale (mGray, locations, weights);
+		//iv.setImageBitmap(peopleDetect("http://habrastorage.org/getpro/habr/post_images/829/8c9/963/8298c9963eed721dabb0548dba577d1b.jpg"));
+//        Log.v("Rect",rectPoint1+"");
+//        rectPoint1.x = 100;//rect.x;
+//        rectPoint1.y = 100;//rect.y;
+//        rectPoint2.x = 200;//rect.x + rect.width;
+//        rectPoint2.y = 200;//rect.y + rect.height;
+//        final Scalar rectColor = new Scalar (0, 0, 0);
+//        Core.rectangle (mRgba, rectPoint1, rectPoint2, rectColor, 2);
+		return mGray;
 	}
+	
+    public Bitmap peopleDetect() {
+        Bitmap bitmap = Bitmap.createBitmap(mGray.cols(), mGray.rows(),Bitmap.Config.ARGB_8888);
+        float execTime;
+        Mat mat = mGray;
+        long time = System.currentTimeMillis ();
+        HOGDescriptor hog = new HOGDescriptor ();
+        MatOfFloat descriptors = HOGDescriptor.getDefaultPeopleDetector ();
+        hog.setSVMDetector (descriptors);MatOfRect locations = new MatOfRect ();
+        MatOfDouble weights = new MatOfDouble ();
+        //As a matter of fact, the analysis of photos. Results register in locations and weights
+        hog.detectMultiScale (mat, locations, weights);
+        execTime = ((float) (System.currentTimeMillis () - time)) / 1000f;
+        //Variables for selection of areas in a photo
+        Point rectPoint1 = new Point ();
+        Point rectPoint2 = new Point ();
+        Scalar fontColor = new Scalar (0, 0, 0);
+        Point fontPoint = new Point ();
+        //If there is a result - is added on a photo of area and weight of each of them
+        if (locations.rows () > 0) {
+            List<Rect> rectangles = locations.toList ();
+            int i = 0;
+            List<Double> weightList = weights.toList ();
+            for (Rect rect: rectangles) {
+                float weigh = weightList.get (i ++).floatValue ();
+
+                rectPoint1.x = rect.x;
+                rectPoint1.y = rect.y;
+                fontPoint.x = rect.x;
+                fontPoint.y = rect.y - 4;
+                rectPoint2.x = rect.x + rect.width;
+                rectPoint2.y = rect.y + rect.height;
+                final Scalar rectColor = new Scalar (0, 0, 0);
+                //It is added on images the found information
+                Core.rectangle (mat, rectPoint1, rectPoint2, rectColor, 2);
+                Core.putText (mat,
+                        String.format ("%1.2f", weigh),
+                        fontPoint, Core. FONT_HERSHEY_PLAIN, 1.5, fontColor,
+                        2, Core. LINE_AA, false);
+
+            }
+        }
+        fontPoint.x = 15;
+        fontPoint.y = bitmap.getHeight () - 20;
+        //It is added the additional debug information
+        Core.putText (mat,
+                "Processing time:" + execTime + "width:" + bitmap.getWidth () + "height:" + bitmap.getHeight (),
+                fontPoint, Core. FONT_HERSHEY_PLAIN, 1.5, fontColor,
+                2, Core. LINE_AA, false);
+        Utils.matToBitmap (mat, bitmap);
+    	return bitmap;
+    }
+    /*
 	 public Bitmap peopleDetect (String path) {
+         Bitmap bitmap = null;
 	        Bitmap bitmap = null;
+
 	        float execTime;
-//	        try {
-	            //we Download a photo
-	        	/*
-	            URL url = new URL (path);
-	            HttpURLConnection connection = (HttpURLConnection) url.openConnection ();
-	            connection.setDoInput (true);
-	            connection.connect ();
-	            InputStream input = connection.getInputStream ();
-	            BitmapFactory. Options opts = new BitmapFactory. Options ();
-	            opts.inPreferredConfig = Bitmap. Config. ARGB_8888;
-	            bitmap = BitmapFactory.decodeStream (input, null, opts); */
 	            long time = System.currentTimeMillis ();
 	            //we Create a matrix of the image for OpenCV and it is placed in it our photo
 	            Mat mat = new Mat ();
@@ -197,9 +258,26 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	                    fontPoint, Core. FONT_HERSHEY_PLAIN, 1.5, fontColor,
 	                    2, Core. LINE_AA, false);
 	            Utils.matToBitmap (mat, bitmap);
-//	        } catch (IOException e) {
-//	            e.printStackTrace ();
-//	        }
+	        Utils.matToBitmap(mGray, bitmap);
 	        return bitmap;
 	    }
+	    
+	            */
+
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+		Log.v("OnTouch","OK"+iv.getVisibility());
+		switch(iv.getVisibility()) {
+		case View.VISIBLE:
+			iv.setVisibility(View.INVISIBLE);
+			break;
+		case View.INVISIBLE:
+			iv.setVisibility(View.VISIBLE);
+			iv.setImageBitmap(peopleDetect());
+			break;
+		default:
+			break;
+		}
+		return false;
+	}
 }
