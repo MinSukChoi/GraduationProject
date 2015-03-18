@@ -84,6 +84,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
 			switch (status) {
 			case LoaderCallbackInterface.SUCCESS: {
 				Log.i(TAG, "OpenCV loaded successfully");
+				System.loadLibrary("hog_detecting");
 				mOpenCvCameraView.enableView();
 			}
 				break;
@@ -132,8 +133,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
 		// TODO Auto-generated method stub
         mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
-        MatOfRect locations = new MatOfRect ();
-        MatOfDouble weights = new MatOfDouble ();
+
+        FindPeople(mGray.getNativeObjAddr(), mRgba.getNativeObjAddr());
         //As a matter of fact, the analysis of photos. Results register in locations and weights
         //hog.detectMultiScale (mGray, locations, weights);
 		//iv.setImageBitmap(peopleDetect("http://habrastorage.org/getpro/habr/post_images/829/8c9/963/8298c9963eed721dabb0548dba577d1b.jpg"));
@@ -144,7 +145,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
 //        rectPoint2.y = 200;//rect.y + rect.height;
 //        final Scalar rectColor = new Scalar (0, 0, 0);
 //        Core.rectangle (mRgba, rectPoint1, rectPoint2, rectColor, 2);
-		return mGray;
+		return mRgba;
 	}
 	
     public Bitmap peopleDetect() {
@@ -280,4 +281,5 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
 		}
 		return false;
 	}
+	 public native void FindPeople(long matAddrGr, long matAddrRgba);
 }
