@@ -17,6 +17,7 @@ import org.opencv.core.MatOfRect;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.HOGDescriptor;
 
 import android.app.Activity;
@@ -130,11 +131,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
 
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-		// TODO Auto-generated method stub
-        mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
+		// TODO Auto-generated method stub
+        //mRgba = inputFrame.rgba();
 
-        FindPeople(mGray.getNativeObjAddr(), mRgba.getNativeObjAddr());
         //As a matter of fact, the analysis of photos. Results register in locations and weights
         //hog.detectMultiScale (mGray, locations, weights);
 		//iv.setImageBitmap(peopleDetect("http://habrastorage.org/getpro/habr/post_images/829/8c9/963/8298c9963eed721dabb0548dba577d1b.jpg"));
@@ -145,7 +145,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
 //        rectPoint2.y = 200;//rect.y + rect.height;
 //        final Scalar rectColor = new Scalar (0, 0, 0);
 //        Core.rectangle (mRgba, rectPoint1, rectPoint2, rectColor, 2);
-		return mRgba;
+		return inputFrame.rgba();
 	}
 	
     public Bitmap peopleDetect() {
@@ -166,6 +166,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
         Scalar fontColor = new Scalar (0, 0, 0);
         Point fontPoint = new Point ();
         //If there is a result - is added on a photo of area and weight of each of them
+        Log.v("howmany",""+locations.rows());
         if (locations.rows () > 0) {
             List<Rect> rectangles = locations.toList ();
             int i = 0;
@@ -198,8 +199,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
                 2, Core. LINE_AA, false);
         Utils.matToBitmap (mat, bitmap);
     	return bitmap;
-    }
-    /*
+    } /*
 	 public Bitmap peopleDetect (String path) {
          Bitmap bitmap = null;
 	        Bitmap bitmap = null;
@@ -262,8 +262,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
 	        Utils.matToBitmap(mGray, bitmap);
 	        return bitmap;
 	    }
-	    
-	            */
+	    */
 
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
@@ -273,13 +272,32 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
 			iv.setVisibility(View.INVISIBLE);
 			break;
 		case View.INVISIBLE:
+			//iv.setImageBitmap(peopleDetect());
+			
+			/*
+            Mat mat = new Mat ();
+            Bitmap bitmap = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.image);
+            Utils.bitmapToMat (bitmap, mat);
+            Imgproc.cvtColor (mat, mat, Imgproc. COLOR_RGB2GRAY, 4);
+            FindPeople(mat.getNativeObjAddr());
+	        bitmap = Bitmap.createBitmap(mat.cols(), mat.rows(),Bitmap.Config.ARGB_8888);
 			iv.setVisibility(View.VISIBLE);
-			iv.setImageBitmap(peopleDetect());
+			Utils.matToBitmap(mat, bitmap);
+			iv.setImageBitmap(bitmap);
+			*/
+            
+            
+	        FindPeople(mGray.getNativeObjAddr());
+			iv.setVisibility(View.VISIBLE);
+	        Bitmap bitmap = Bitmap.createBitmap(mGray.cols(), mGray.rows(),Bitmap.Config.ARGB_8888);
+			Utils.matToBitmap(mGray, bitmap);
+			iv.setImageBitmap(bitmap);
+			
 			break;
 		default:
 			break;
 		}
 		return false;
 	}
-	 public native void FindPeople(long matAddrGr, long matAddrRgba);
+	 public native void FindPeople(long matAddrGr);
 }
