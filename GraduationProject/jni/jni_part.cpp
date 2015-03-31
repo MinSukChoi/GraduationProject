@@ -15,6 +15,8 @@ using namespace cv;
 
 extern "C" {
 JNIEXPORT void JNICALL Java_com_example_hellocv_MainActivity_FindPeople(JNIEnv*, jobject, jlong addrGray);
+JNIEXPORT jint JNICALL Java_com_example_hellocv_MainActivity_FindFeature(JNIEnv*, jobject, jlong addrGray,jlong addrDescriptor);
+JNIEXPORT void JNICALL Java_com_example_hellocv_MainActivity_GetDescriptor(JNIEnv*, jobject, jlong addrGray,jlong addrDescriptor);
 
 JNIEXPORT void JNICALL Java_com_example_hellocv_MainActivity_FindPeople(JNIEnv*, jobject, jlong addrGray)
 {
@@ -34,7 +36,7 @@ JNIEXPORT void JNICALL Java_com_example_hellocv_MainActivity_FindPeople(JNIEnv*,
     //rectangle(mGr, p1, p2, cv::Scalar(0,255,0), 3);
 
     double t = (double)getTickCount();
-    hog.detectMultiScale(mGr, found, 0, Size(8,8), Size(4,4), 1.05, 2);
+    hog.detectMultiScale(mGr, found, 0, Size(8,8), Size(16,16), 1.05, 2);
     t = (double)getTickCount() - t;
     LOGD("Detection Time: %gms", t*1000./cv::getTickFrequency());
     LOGD("People: %d", found.size());
@@ -61,69 +63,72 @@ JNIEXPORT void JNICALL Java_com_example_hellocv_MainActivity_FindPeople(JNIEnv*,
         rectangle(mGr, r.tl(), r.br(), cv::Scalar(0,255,0), 3);
     }
 }
+JNIEXPORT jint JNICALL Java_com_example_hellocv_MainActivity_FindFeature(JNIEnv*, jobject, jlong addrGray,jlong addrDescriptor)
+{
+    LOGD("Java_com_example_hellocv_MainActivity_FindFeature enter");
+    Mat& mGr  = *(Mat*)addrGray;
+    Mat& mDescriptor = *(Mat*)addrDescriptor;
+    //resize(mGr,mGr,cvSize(mGr.cols/8,mGr.rows/8));
+
+    Mat angleofs,grad;
+
+    HOGDescriptor hog;
+
+
+    double t = (double)getTickCount();
+    hog.computeGradient(mGr,grad,angleofs);
+    t = (double)getTickCount() - t;
+    double distance=0;
+    for(int i=0;i<grad.rows;i++)
+    {
+       distance += abs(mDescriptor.at<float>(i,0) - grad.at<float>(i,0));
+    }
+    LOGD("Detection Time: %gms", t*1000./cv::getTickFrequency());
+    LOGD("Distance: %f", distance);
+    return (int)distance;
+
+
 }
-/*
-	 public Bitmap peopleDetect (String path) {
-        Bitmap bitmap = null;
-	        Bitmap bitmap = null;
 
-	        float execTime;
-	            long time = System.currentTimeMillis ();
-	            //we Create a matrix of the image for OpenCV and it is placed in it our photo
-	            Mat mat = new Mat ();
-	            bitmap = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.dong);
-	            Utils.bitmapToMat (bitmap, mat);
-	            //Perekonvertiruem a matrix with RGB on graduation of the gray
-	            Imgproc.cvtColor (mat, mat, Imgproc. COLOR_RGB2GRAY, 4);
-	            HOGDescriptor hog = new HOGDescriptor ();
-	            //the standard determinant of people Is gained and installed to its our descriptor
-	            MatOfFloat descriptors = HOGDescriptor.getDefaultPeopleDetector ();
-	            hog.setSVMDetector (descriptors);
-	            //It is defined variables in which search results (locations - the right-angled areas will be placed, weights - weight (it is possible to tell relevance) an appropriate location)
-	            MatOfRect locations = new MatOfRect ();
-	            MatOfDouble weights = new MatOfDouble ();
-	            //As a matter of fact, the analysis of photos. Results register in locations and weights
-	            hog.detectMultiScale (mat, locations, weights);
-	            execTime = ((float) (System.currentTimeMillis () - time)) / 1000f;
-	            //Variables for selection of areas in a photo
-	            Point rectPoint1 = new Point ();
-	            Point rectPoint2 = new Point ();
-	            Scalar fontColor = new Scalar (0, 0, 0);
-	            Point fontPoint = new Point ();
-	            //If there is a result - is added on a photo of area and weight of each of them
-	            if (locations.rows () > 0) {
-	                List<Rect> rectangles = locations.toList ();
-	                int i = 0;
-	                List<Double> weightList = weights.toList ();
-	                for (Rect rect: rectangles) {
-	                    float weigh = weightList.get (i ++).floatValue ();
+JNIEXPORT void JNICALL Java_com_example_hellocv_MainActivity_GetDescriptor(JNIEnv*, jobject, jlong addrGray,jlong addrDescriptor) {
+    LOGD("Java_com_example_hellocv_MainActivity_GetDescriptor enter");
 
-	                    rectPoint1.x = rect.x;
-	                    rectPoint1.y = rect.y;
-	                    fontPoint.x = rect.x;
-	                    fontPoint.y = rect.y - 4;
-	                    rectPoint2.x = rect.x + rect.width;
-	                    rectPoint2.y = rect.y + rect.height;
-	                    final Scalar rectColor = new Scalar (0, 0, 0);
-	                    //It is added on images the found information
-	                    Core.rectangle (mat, rectPoint1, rectPoint2, rectColor, 2);
-	                    Core.putText (mat,
-	                            String.format ("%1.2f", weigh),
-	                            fontPoint, Core. FONT_HERSHEY_PLAIN, 1.5, fontColor,
-	                            2, Core. LINE_AA, false);
+    Mat& mGr  = *(Mat*)addrGray;
+    Mat& grad = *(Mat*)addrDescriptor;
 
-	                }
-	            }
-	            fontPoint.x = 15;
-	            fontPoint.y = bitmap.getHeight () - 20;
-	            //It is added the additional debug information
-	            Core.putText (mat,
-	                    "Processing time:" + execTime + "width:" + bitmap.getWidth () + "height:" + bitmap.getHeight (),
-	                    fontPoint, Core. FONT_HERSHEY_PLAIN, 1.5, fontColor,
-	                    2, Core. LINE_AA, false);
-	            Utils.matToBitmap (mat, bitmap);
-	        Utils.matToBitmap(mGray, bitmap);
-	        return bitmap;
-	    }
+    HOGDescriptor hog;
+    Mat angleofs;
+    //This function computes the hog features for you
+    hog.computeGradient(mGr,grad,angleofs);
 
-	            */
+    /*
+    for(int i=0;i<ders.size();i++)
+    {
+      Hogfeat.at<float>(i,0)=ders.at(i);
+
+    }
+    //Now your HOG features are stored in Hogfeat matrix
+
+    you can also set the window size, cell size and block size by using object hog as follows:
+
+    hog.blockSize=16;
+    hog.cellSize=4;
+    hog.blockStride=8;
+
+    //This is for comparing the HOG features of two images without using any SVM
+    //(It is not an efficient way but useful when you want to compare only few or two images)
+    //Simple distance
+    //Consider you have two hog feature vectors for two images Hogfeat1 and Hogfeat2 and those are same size.
+    double distance=0;
+    for(int i=0;i<Hogfeat.rows;i++)
+    {
+       distance+ = abs(Hogfeat.at<float>(i,0) - Hogfeat.at<float>(i,0));
+    }
+    if(distance < Threshold)
+    cout<<"Two images are of same class"<<endl;
+    else
+    cout<<"Two images are of different class"<<endl;
+    */
+
+}
+}
