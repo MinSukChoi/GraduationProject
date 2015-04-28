@@ -40,7 +40,48 @@ JNIEXPORT void JNICALL Java_com_example_hellocv_MainActivity_FindPeople(JNIEnv*,
     t = (double)getTickCount() - t;
     LOGD("Detection Time: %gms", t*1000./cv::getTickFrequency());
     LOGD("People: %d", found.size());
-    //hog.detectMultiScale(mGr,found,weight,-.05, Size(4,4), Size(0,0), 1.05, 0);
+    for( i = 0; i < found.size(); i++ )
+    {
+        Rect r = found[i];
+        for( j = 0; j < found.size(); j++ )
+            if( j != i && (r & found[j]) == r)
+                break;
+        if( j == found.size() )
+            found_filtered.push_back(r);
+    }
+    if(found.size()) {
+    	Rect r = found[0];
+        r.x += cvRound(r.width*0.1);
+        r.width = cvRound(r.width*0.8);
+        r.y += cvRound(r.height*0.07);
+        r.height = cvRound(r.height*0.8);
+    	LOGD("c : %d, r : %d",r.height,r.width);
+    	mGr = mGr(r);
+    }
+}
+/*
+JNIEXPORT void JNICALL Java_com_example_hellocv_MainActivity_FindPeople(JNIEnv*, jobject, jlong addrGray)
+{
+    LOGD("Java_com_example_hellocv_MainActivity_FindPeople enter");
+    Mat& mGr  = *(Mat*)addrGray;
+    resize(mGr,mGr,cvSize(mGr.cols/8,mGr.rows/8));
+    vector<Rect> found, found_filtered;
+    size_t i, j;
+
+    HOGDescriptor hog;
+    hog.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
+    //Point p1,p2;
+    //p1.x=100; p1.y=100;
+    //p2.x=200; p2.y=200;
+    //vector<double> weight;
+
+    //rectangle(mGr, p1, p2, cv::Scalar(0,255,0), 3);
+
+    double t = (double)getTickCount();
+    hog.detectMultiScale(mGr, found, 0, Size(8,8), Size(16,16), 1.05, 2);
+    t = (double)getTickCount() - t;
+    LOGD("Detection Time: %gms", t*1000./cv::getTickFrequency());
+    LOGD("People: %d", found.size());
     for( i = 0; i < found.size(); i++ )
     {
         Rect r = found[i];
@@ -63,6 +104,8 @@ JNIEXPORT void JNICALL Java_com_example_hellocv_MainActivity_FindPeople(JNIEnv*,
         rectangle(mGr, r.tl(), r.br(), cv::Scalar(0,255,0), 3);
     }
 }
+*/
+
 JNIEXPORT jint JNICALL Java_com_example_hellocv_MainActivity_FindFeature(JNIEnv*, jobject, jlong addrGray,jlong addrDescriptor)
 {
     LOGD("Java_com_example_hellocv_MainActivity_FindFeature enter");

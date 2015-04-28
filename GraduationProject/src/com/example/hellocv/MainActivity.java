@@ -133,6 +133,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         mGray = inputFrame.gray();
         mRgba = inputFrame.rgba();
+        //FindPeople(mGray.getNativeObjAddr());
+        /*
         int distance;
         if(mDescriptor != null) {
             Scalar fontColor = new Scalar (0, 0, 0);
@@ -144,6 +146,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
                     fontPoint, Core. FONT_HERSHEY_PLAIN, 1.5, fontColor,
                     2, Core. LINE_AA, false);
         }
+        */
 		return mRgba;
 	}
 	
@@ -271,8 +274,16 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
 			iv.setVisibility(View.INVISIBLE);
 			break;
 		case View.INVISIBLE:
+			FindPeople(mGray.getNativeObjAddr());
+			//Log.v("OnTouch","col : "+mGray.cols()+", row : "+mGray.rows());
+			Bitmap bm = Bitmap.createBitmap(mGray.cols(), mGray.rows(),Bitmap.Config.ARGB_8888);
+		    Utils.matToBitmap(mGray, bm);
+		    iv.setImageBitmap(bm);
+
 			mDescriptor= new Mat();
 			GetDescriptor(mGray.getNativeObjAddr(),mDescriptor.getNativeObjAddr());
+		    
+			iv.setVisibility(View.VISIBLE);
 			
 			break;
 		default:
