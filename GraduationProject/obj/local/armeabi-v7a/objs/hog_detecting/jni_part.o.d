@@ -3,15 +3,7 @@ obj/local/armeabi-v7a/objs/hog_detecting/jni_part.o: jni/jni_part.cpp \
  D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/sys/cdefs.h \
  D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/sys/cdefs_elf.h \
  D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/android/api-level.h \
- D:/OpenCV-android-sdk/sdk/native/jni/include/opencv2/imgproc/imgproc.hpp \
- D:/OpenCV-android-sdk/sdk/native/jni/include/opencv2/core/core.hpp \
- D:/OpenCV-android-sdk/sdk/native/jni/include/opencv2/core/types_c.h \
- D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/assert.h \
- D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/stdlib.h \
- D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/string.h \
- D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/malloc.h \
- D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/alloca.h \
- D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/strings.h \
+ D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/stdio.h \
  D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/sys/types.h \
  D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/stdint.h \
  D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/sys/_types.h \
@@ -24,6 +16,15 @@ obj/local/armeabi-v7a/objs/hog_detecting/jni_part.o: jni/jni_part.cpp \
  D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/linux/types.h \
  D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/machine/kernel.h \
  D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/sys/sysmacros.h \
+ D:/OpenCV-android-sdk/sdk/native/jni/include/opencv2/imgproc/imgproc.hpp \
+ D:/OpenCV-android-sdk/sdk/native/jni/include/opencv2/core/core.hpp \
+ D:/OpenCV-android-sdk/sdk/native/jni/include/opencv2/core/types_c.h \
+ D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/assert.h \
+ D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/stdlib.h \
+ D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/string.h \
+ D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/malloc.h \
+ D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/alloca.h \
+ D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/strings.h \
  D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/memory.h \
  D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/math.h \
  D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/limits.h \
@@ -59,23 +60,7 @@ D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/sys/cdefs_elf.h:
 
 D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/android/api-level.h:
 
-D:/OpenCV-android-sdk/sdk/native/jni/include/opencv2/imgproc/imgproc.hpp:
-
-D:/OpenCV-android-sdk/sdk/native/jni/include/opencv2/core/core.hpp:
-
-D:/OpenCV-android-sdk/sdk/native/jni/include/opencv2/core/types_c.h:
-
-D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/assert.h:
-
-D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/stdlib.h:
-
-D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/string.h:
-
-D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/malloc.h:
-
-D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/alloca.h:
-
-D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/strings.h:
+D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/stdio.h:
 
 D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/sys/types.h:
 
@@ -100,6 +85,24 @@ D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/linux/types.h:
 D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/machine/kernel.h:
 
 D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/sys/sysmacros.h:
+
+D:/OpenCV-android-sdk/sdk/native/jni/include/opencv2/imgproc/imgproc.hpp:
+
+D:/OpenCV-android-sdk/sdk/native/jni/include/opencv2/core/core.hpp:
+
+D:/OpenCV-android-sdk/sdk/native/jni/include/opencv2/core/types_c.h:
+
+D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/assert.h:
+
+D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/stdlib.h:
+
+D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/string.h:
+
+D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/malloc.h:
+
+D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/alloca.h:
+
+D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/strings.h:
 
 D:/android-ndk-r10d/platforms/android-15/arch-arm/usr/include/memory.h:
 

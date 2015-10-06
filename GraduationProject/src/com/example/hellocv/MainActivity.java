@@ -1,5 +1,6 @@
 package com.example.hellocv;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -17,13 +18,14 @@ import org.opencv.core.MatOfRect;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.HOGDescriptor;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,12 +35,23 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 public class MainActivity extends Activity implements CvCameraViewListener2, OnTouchListener {
 	private static final String TAG = "HelloCV::HelloOpenCvActivity";
 	private ImageView iv;
+	private TextView textView_check;
+	private ProgressBar bar;
     private Mat                    mRgba;
     private Mat                    mGray, mDescriptor=null;
+    private boolean isSet=false;
+    private static final String ACTION_KEY_TYPE = "ActionKeyType";
+    private static final String ACTION_KEY_VALUE = "ActionKeyValue";
+    private ArrayList<Boolean> maintainance = new ArrayList<Boolean>();
+    	
+    private static final int ACTION_TYPE_SETTEXT = 0;
+    private static final int ACTION_TYPE_SETSCROLL = 1;
 	
 	private CameraBridgeViewBase mOpenCvCameraView;
 	static {
@@ -54,6 +67,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		setContentView(R.layout.layout_main);
 		iv = (ImageView)findViewById(R.id.modifiedImage);
+		textView_check = (TextView)findViewById(R.id.detectionCheck);
+		bar = (ProgressBar)findViewById(R.id.progressbar);
 		mOpenCvCameraView = (CameraBridgeViewBase)findViewById(R.id.HelloOpenCvView);
 		mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 		mOpenCvCameraView.setCvCameraViewListener(this);
@@ -128,12 +143,46 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
 		// TODO Auto-generated method stub
 		
 	}
-
+	private boolean isMaintained(int result){
+		int count=0;
+		String str="";
+		
+		if(result > 0)
+			maintainance.add(true);
+		else maintainance.add(false);
+		if(maintainance.size()>=12) {
+			maintainance.remove(0);
+		}
+		for(int i=0 ;i<maintainance.size();i++) {
+			if(maintainance.get(i)) {
+				count++;
+				str+='O';
+			}else str+='X';
+		}
+        sendActionMsg(ACTION_TYPE_SETTEXT, str);
+        sendActionMsg(ACTION_TYPE_SETSCROLL,count);
+		if(count >= 10) {
+			maintainance.removeAll(maintainance);
+			return true;
+		}
+		else return false;
+	}
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+		if(!isSet) {
+			SetDescriptor();
+			isSet=true;
+		}
         mGray = inputFrame.gray();
         mRgba = inputFrame.rgba();
-        //FindPeople(mGray.getNativeObjAddr());
+        int detectResult = FindPeople(mGray.getNativeObjAddr());
+        //sendActionMsg(ACTION_TYPE_SETSCROLL, detectResult);
+        if(isMaintained(detectResult)) {
+			Intent intentVideoRecordActivity = 
+					new Intent(MainActivity.this, VideoRecordActivity.class);
+			startActivity(intentVideoRecordActivity);        	
+        }
+        
         /*
         int distance;
         if(mDescriptor != null) {
@@ -149,6 +198,48 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
         */
 		return mRgba;
 	}
+	private void sendActionMsg(int action, int value)
+	{
+		Message msg = mActionHandler.obtainMessage();
+				
+		Bundle bundle = new Bundle();
+		bundle.putInt(ACTION_KEY_TYPE, action);
+		bundle.putInt(ACTION_KEY_VALUE, value);
+				
+		msg.setData(bundle);
+		mActionHandler.sendMessage(msg);
+	}
+
+	private void sendActionMsg(int action, String value)
+	{
+		Message msg = mActionHandler.obtainMessage();
+				
+		Bundle bundle = new Bundle();
+		bundle.putInt(ACTION_KEY_TYPE, action);
+		bundle.putString(ACTION_KEY_VALUE, value);
+				
+		msg.setData(bundle);
+		mActionHandler.sendMessage(msg);
+	}
+	public Handler mActionHandler = new Handler()
+	{
+		public void handleMessage(Message msg) {
+			Bundle data = msg.getData();
+					
+			switch(data.getInt(ACTION_KEY_TYPE)) {
+			case ACTION_TYPE_SETTEXT:
+				String str = data.getString(ACTION_KEY_VALUE);
+		        textView_check.setText(str);
+			break;    
+						
+			case ACTION_TYPE_SETSCROLL:
+				int intvalue = data.getInt(ACTION_KEY_VALUE);
+		        bar.setProgress(intvalue*10);
+		  
+			break;
+		}
+	}
+		};
 	
     public Bitmap peopleDetect() {
         Bitmap bitmap = Bitmap.createBitmap(mGray.cols(), mGray.rows(),Bitmap.Config.ARGB_8888);
@@ -201,97 +292,14 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
                 2, Core. LINE_AA, false);
         Utils.matToBitmap (mat, bitmap);
     	return bitmap;
-    } /*
-	 public Bitmap peopleDetect (String path) {
-         Bitmap bitmap = null;
-	        Bitmap bitmap = null;
-
-	        float execTime;
-	            long time = System.currentTimeMillis ();
-	            //we Create a matrix of the image for OpenCV and it is placed in it our photo
-	            Mat mat = new Mat ();
-	            bitmap = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.dong);
-	            Utils.bitmapToMat (bitmap, mat);
-	            //Perekonvertiruem a matrix with RGB on graduation of the gray
-	            Imgproc.cvtColor (mat, mat, Imgproc. COLOR_RGB2GRAY, 4);
-	            HOGDescriptor hog = new HOGDescriptor ();
-	            //the standard determinant of people Is gained and installed to its our descriptor
-	            MatOfFloat descriptors = HOGDescriptor.getDefaultPeopleDetector ();
-	            hog.setSVMDetector (descriptors);
-	            //It is defined variables in which search results (locations - the right-angled areas will be placed, weights - weight (it is possible to tell relevance) an appropriate location)
-	            MatOfRect locations = new MatOfRect ();
-	            MatOfDouble weights = new MatOfDouble ();
-	            //As a matter of fact, the analysis of photos. Results register in locations and weights
-	            hog.detectMultiScale (mat, locations, weights);
-	            execTime = ((float) (System.currentTimeMillis () - time)) / 1000f;
-	            //Variables for selection of areas in a photo
-	            Point rectPoint1 = new Point ();
-	            Point rectPoint2 = new Point ();
-	            Scalar fontColor = new Scalar (0, 0, 0);
-	            Point fontPoint = new Point ();
-	            //If there is a result - is added on a photo of area and weight of each of them
-	            if (locations.rows () > 0) {
-	                List<Rect> rectangles = locations.toList ();
-	                int i = 0;
-	                List<Double> weightList = weights.toList ();
-	                for (Rect rect: rectangles) {
-	                    float weigh = weightList.get (i ++).floatValue ();
-
-	                    rectPoint1.x = rect.x;
-	                    rectPoint1.y = rect.y;
-	                    fontPoint.x = rect.x;
-	                    fontPoint.y = rect.y - 4;
-	                    rectPoint2.x = rect.x + rect.width;
-	                    rectPoint2.y = rect.y + rect.height;
-	                    final Scalar rectColor = new Scalar (0, 0, 0);
-	                    //It is added on images the found information
-	                    Core.rectangle (mat, rectPoint1, rectPoint2, rectColor, 2);
-	                    Core.putText (mat,
-	                            String.format ("%1.2f", weigh),
-	                            fontPoint, Core. FONT_HERSHEY_PLAIN, 1.5, fontColor,
-	                            2, Core. LINE_AA, false);
-
-	                }
-	            }
-	            fontPoint.x = 15;
-	            fontPoint.y = bitmap.getHeight () - 20;
-	            //It is added the additional debug information
-	            Core.putText (mat,
-	                    "Processing time:" + execTime + "width:" + bitmap.getWidth () + "height:" + bitmap.getHeight (),
-	                    fontPoint, Core. FONT_HERSHEY_PLAIN, 1.5, fontColor,
-	                    2, Core. LINE_AA, false);
-	            Utils.matToBitmap (mat, bitmap);
-	        Utils.matToBitmap(mGray, bitmap);
-	        return bitmap;
-	    }
-	    */
+    }
 
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		Log.v("OnTouch","OK"+iv.getVisibility());
-		switch(iv.getVisibility()) {
-		case View.VISIBLE:
-			iv.setVisibility(View.INVISIBLE);
-			break;
-		case View.INVISIBLE:
-			FindPeople(mGray.getNativeObjAddr());
-			//Log.v("OnTouch","col : "+mGray.cols()+", row : "+mGray.rows());
-			Bitmap bm = Bitmap.createBitmap(mGray.cols(), mGray.rows(),Bitmap.Config.ARGB_8888);
-		    Utils.matToBitmap(mGray, bm);
-		    iv.setImageBitmap(bm);
-
-			mDescriptor= new Mat();
-			GetDescriptor(mGray.getNativeObjAddr(),mDescriptor.getNativeObjAddr());
-		    
-			iv.setVisibility(View.VISIBLE);
-			
-			break;
-		default:
-			break;
-		}
 		return false;
 	}
-	 public native void FindPeople(long matAddrGr);
+	 public native int FindPeople(long matAddrGr);
 	 public native int FindFeature(long matAddrGr,long matAddrDescriptor);
-	 public native void GetDescriptor(long matAddrGr,long matAddrDescriptor);
+	 public native void SetDescriptor();
 }
